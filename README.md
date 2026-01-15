@@ -1,36 +1,155 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kru Jeab
+
+LINE LIFF Application สำหรับบันทึกรายรับรายจ่าย พัฒนาด้วย Next.js และ Prisma
+
+## Tech Stack
+
+- **Framework:** Next.js 16
+- **Database:** SQLite (with Prisma ORM + better-sqlite3 adapter)
+- **Styling:** TailwindCSS 4
+- **LINE Integration:** LIFF SDK
+
+## Prerequisites
+
+- Node.js 20+
+- pnpm
 
 ## Getting Started
 
-First, run the development server:
+### 1. Clone และติดตั้ง dependencies
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd kru-jeab
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. ตั้งค่า Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+สร้างไฟล์ `.env` ที่ root ของโปรเจค:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```env
+DATABASE_URL="file:./dev.db"
+NEXT_PUBLIC_LIFF_ID="your-liff-id"
+```
 
-## Learn More
+### 3. ตั้งค่า Database
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# สร้าง migration และ database
+pnpm db:migrate
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# หรือ push schema โดยไม่สร้าง migration file
+pnpm db:push
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# สร้าง Prisma Client
+pnpm db:generate
+```
 
-## Deploy on Vercel
+### 4. รัน Development Server
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+pnpm dev
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+เปิด [http://localhost:3000](http://localhost:3000) ใน browser
+
+## Scripts
+
+| คำสั่ง | คำอธิบาย |
+|--------|----------|
+| `pnpm dev` | รัน development server |
+| `pnpm build` | build สำหรับ production |
+| `pnpm start` | รัน production server |
+| `pnpm lint` | ตรวจสอบ code ด้วย ESLint |
+
+### Database Scripts
+
+| คำสั่ง | คำอธิบาย |
+|--------|----------|
+| `pnpm db:generate` | สร้าง Prisma Client จาก schema |
+| `pnpm db:migrate` | สร้าง migration ใหม่ (development) |
+| `pnpm db:migrate:deploy` | apply migrations (production) |
+| `pnpm db:push` | sync schema ไป database โดยไม่สร้าง migration |
+| `pnpm db:studio` | เปิด Prisma Studio GUI ดูข้อมูลใน database |
+| `pnpm db:seed` | ใส่ข้อมูลตัวอย่าง |
+| `pnpm db:reset` | reset database และรัน migrations ใหม่ |
+
+## Project Structure
+
+```
+kru-jeab/
+├── prisma/
+│   ├── schema.prisma      # Database schema
+│   └── migrations/        # Migration files
+├── src/
+│   ├── app/               # Next.js App Router
+│   ├── components/        # React components
+│   ├── configs/           # Configuration files
+│   ├── contexts/          # React contexts (LIFF)
+│   ├── generated/         # Generated Prisma Client
+│   ├── interfaces/        # TypeScript interfaces
+│   ├── libs/              # Utility libraries
+│   └── services/          # API services
+├── public/                # Static files
+└── .env                   # Environment variables
+```
+
+## Database Schema
+
+### User
+| Field | Type | Description |
+|-------|------|-------------|
+| id | String | Primary key (CUID) |
+| lineId | String | LINE User ID (unique) |
+| name | String? | ชื่อผู้ใช้ |
+| createdAt | DateTime | วันที่สร้าง |
+
+### Transaction
+| Field | Type | Description |
+|-------|------|-------------|
+| id | String | Primary key (CUID) |
+| userId | String | Foreign key to User |
+| type | TxnType | INCOME / EXPENSE |
+| amount | Int | จำนวนเงิน |
+| note | String? | หมายเหตุ |
+| category | String? | หมวดหมู่ |
+| createdAt | DateTime | วันที่สร้าง |
+
+## Development
+
+### ดูข้อมูลใน Database
+
+```bash
+pnpm db:studio
+```
+
+จะเปิด browser ที่ http://localhost:5555
+
+### แก้ไข Database Schema
+
+1. แก้ไขไฟล์ `prisma/schema.prisma`
+2. รัน migration:
+   ```bash
+   pnpm db:migrate --name <migration-name>
+   ```
+3. Prisma Client จะ generate ให้อัตโนมัติ
+
+## Deployment
+
+### Build
+
+```bash
+pnpm build
+```
+
+### Production
+
+```bash
+pnpm db:migrate:deploy  # apply migrations
+pnpm start
+```
+
+## License
+
+Private

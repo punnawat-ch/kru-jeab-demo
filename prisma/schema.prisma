@@ -1,0 +1,36 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String        @id @default(cuid())
+  lineId    String        @unique
+  name      String?
+  createdAt DateTime      @default(now())
+  txns      Transaction[]
+}
+
+model Transaction {
+  id        String   @id @default(cuid())
+  userId    String
+  type      TxnType
+  amount    Int
+  note      String?
+  category  String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+enum TxnType {
+  INCOME
+  EXPENSE
+}
