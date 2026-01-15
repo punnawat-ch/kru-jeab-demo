@@ -95,7 +95,6 @@ export async function POST(req: Request) {
       if (event.message?.type !== "text") return;
 
       const userId = event.source?.userId;
-      console.log("🚀 ~ POST ~ userId:", event);
       const text = event.message?.text ?? "";
       if (!userId || !text) return;
 

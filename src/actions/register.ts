@@ -25,7 +25,6 @@ export async function registerUser(
 ): Promise<RegisterResult> {
   try {
     const { lineId, name } = input;
-    console.log("🚀 ~ registerUser ~ input:", input);
 
     if (!lineId) {
       return {
