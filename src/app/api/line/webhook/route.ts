@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "node:crypto";
 import { prisma } from "@/libs/prisma";
+import { liffId } from "@/configs";
 import { TxnType } from "@/generated/prisma/enums";
 
 export const runtime = "nodejs";
@@ -66,6 +67,90 @@ const replyMessage = async (replyToken: string, text: string) => {
   });
 };
 
+const pushMessage = async (
+  userId: string,
+  messages: Array<Record<string, unknown>>
+) => {
+  const accessToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
+  if (!accessToken) return;
+
+  await fetch("https://api.line.me/v2/bot/message/push", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({
+      to: userId,
+      messages,
+    }),
+  });
+};
+
+const buildRegisterFlexMessage = () => {
+  const registerUrl = liffId ? `https://liff.line.me/${liffId}` : undefined;
+
+  return {
+    type: "flex",
+    altText: "กรุณาลงทะเบียนก่อนใช้งาน",
+    contents: {
+      type: "bubble",
+      hero: {
+        type: "image",
+        url: "https://placehold.co/1200x630/png?text=Kru%20Jeab",
+        size: "full",
+        aspectRatio: "20:13",
+        aspectMode: "cover",
+      },
+      body: {
+        type: "box",
+        layout: "vertical",
+        spacing: "md",
+        contents: [
+          {
+            type: "text",
+            text: "ยังไม่ได้ลงทะเบียน",
+            weight: "bold",
+            size: "lg",
+          },
+          {
+            type: "text",
+            text: "กรุณาเปิด LIFF เพื่อสมัครใช้งานก่อน",
+            size: "sm",
+            color: "#666666",
+            wrap: true,
+          },
+        ],
+      },
+      footer: {
+        type: "box",
+        layout: "vertical",
+        spacing: "sm",
+        contents: [
+          registerUrl
+            ? {
+                type: "button",
+                style: "primary",
+                color: "#2563EB",
+                action: {
+                  type: "uri",
+                  label: "เปิดหน้า LIFF เพื่อลงทะเบียน",
+                  uri: registerUrl,
+                },
+              }
+            : {
+                type: "text",
+                text: "กรุณาตั้งค่า LIFF ID",
+                size: "sm",
+                color: "#999999",
+                align: "center",
+              },
+        ],
+      },
+    },
+  };
+};
+
 const getMonthRange = (date = new Date()) => {
   const start = new Date(date.getFullYear(), date.getMonth(), 1);
   const end = new Date(date.getFullYear(), date.getMonth() + 1, 1);
@@ -109,6 +194,7 @@ export async function POST(req: Request) {
             "ยังไม่พบผู้ใช้งาน กรุณาเปิด LIFF และลงทะเบียนก่อนใช้งาน"
           );
         }
+        await pushMessage(userId, [buildRegisterFlexMessage()]);
         return;
       }
 
