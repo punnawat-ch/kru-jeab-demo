@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition } from "react";
+import { useLiff } from "@/contexts/LiffContext";
 import { useUserStore } from "@/stores/userStore";
+import Loading from "@/components/Loading";
 import type { Transaction } from "@/generated/prisma/client";
 
 type FilterMonth = number | "all";
@@ -34,11 +36,12 @@ const formatDate = (date: string | Date) =>
   });
 
 export default function TransactionsPage() {
+  const { liff, isLoading, isInitialized, error } = useLiff();
   const { user } = useUserStore();
   const [month, setMonth] = useState<FilterMonth>(new Date().getMonth() + 1);
   const [year, setYear] = useState<number>(new Date().getFullYear());
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const summary = useMemo(() => {
@@ -72,7 +75,7 @@ export default function TransactionsPage() {
       params.set("month", String(month));
     }
     startTransition(async () => {
-      setError(null);
+      setFetchError(null);
 
       fetch(`/api/transactions?${params.toString()}`, {
         signal: controller.signal,
@@ -89,12 +92,58 @@ export default function TransactionsPage() {
         })
         .catch((err) => {
           if (err.name === "AbortError") return;
-          setError(err.message || "โหลดข้อมูลไม่สำเร็จ");
+          setFetchError(err.message || "โหลดข้อมูลไม่สำเร็จ");
         });
     });
 
     return () => controller.abort();
   }, [user?.id, month, year]);
+
+  if (isLoading || !isInitialized) {
+    return <Loading />;
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-blue-100 to-cyan-100 p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md text-center">
+          <div className="text-6xl mb-4">😢</div>
+          <h2 className="text-2xl font-bold text-red-600 mb-2">
+            เกิดข้อผิดพลาด
+          </h2>
+          <p className="text-gray-600 mb-4">{error.message}</p>
+          <button
+            onClick={() => globalThis.location.reload()}
+            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            ลองใหม่
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!liff?.isLoggedIn()) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-blue-100 to-cyan-100 p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md text-center">
+          <div className="text-5xl mb-4">🔒</div>
+          <h2 className="text-2xl font-bold text-blue-600 mb-2">
+            กรุณาเข้าสู่ระบบ
+          </h2>
+          <p className="text-gray-500 mb-4">
+            ต้องเข้าสู่ระบบผ่าน LINE ก่อนจึงจะดูรายการได้
+          </p>
+          <button
+            onClick={() => liff?.login()}
+            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            เข้าสู่ระบบ
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return (
@@ -217,13 +266,13 @@ export default function TransactionsPage() {
             </div>
           )}
 
-          {error && (
+          {fetchError && (
             <div className="text-center text-red-600 font-medium py-6">
-              {error}
+              {fetchError}
             </div>
           )}
 
-          {!isPending && !error && transactions.length === 0 && (
+          {!isPending && !fetchError && transactions.length === 0 && (
             <div className="text-center text-gray-500 py-10">
               ไม่มีรายการในช่วงเวลานี้
             </div>
