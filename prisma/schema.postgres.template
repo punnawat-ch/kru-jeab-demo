@@ -1,5 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// PostgreSQL schema for production
 
 generator client {
   provider = "prisma-client"
@@ -7,7 +6,6 @@ generator client {
 }
 
 datasource db {
-  // provider = "sqlite"
   provider = "postgresql"
 }
 
@@ -35,3 +33,4 @@ enum TxnType {
   INCOME
   EXPENSE
 }
+

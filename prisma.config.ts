@@ -4,10 +4,18 @@ import "dotenv/config";
 import { defineConfig } from "prisma/config";
 import { databaseUrl } from "./src/configs";
 
+const isProduction = process.env.NODE_ENV === "production";
+const schema =
+  process.env.PRISMA_SCHEMA ??
+  (isProduction ? "prisma/schema.postgres.template" : "prisma/schema.prisma");
+const migrationsPath = schema.includes("postgres")
+  ? "prisma/migrations-postgres"
+  : "prisma/migrations-sqlite";
+
 export default defineConfig({
-  schema: "prisma/schema.prisma",
+  schema,
   migrations: {
-    path: "prisma/migrations",
+    path: migrationsPath,
   },
   datasource: {
     url: databaseUrl,
