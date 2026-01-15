@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
    * This enables the `use cache` directive for caching components and functions
    * @see https://nextjs.org/docs/app/api-reference/directives/use-cache
    */
-  cacheComponents: true,
+  // cacheComponents: true,
 };
 
 export default nextConfig;

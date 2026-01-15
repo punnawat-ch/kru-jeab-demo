@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   description: "Line LIFF Web Application - ครูเจี๊ยบ (Kru Jeab)",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

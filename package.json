@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:prod": "prisma generate && prisma migrate deploy && next build",
     "start": "next start",
     "lint": "eslint",
     "db:generate": "prisma generate",
@@ -19,12 +20,15 @@
     "@line/liff": "^2.27.3",
     "@prisma/adapter-better-sqlite3": "^7.2.0",
     "@prisma/client": "^7.2.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "better-sqlite3": "^12.6.0",
     "i": "^0.3.7",
     "next": "16.1.1",
     "next-devtools-mcp": "^0.3.10",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "zustand": "^5.0.10"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

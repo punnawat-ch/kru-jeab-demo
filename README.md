@@ -31,6 +31,7 @@ pnpm install
 ```env
 DATABASE_URL="file:./dev.db"
 NEXT_PUBLIC_LIFF_ID="your-liff-id"
+NEXT_PUBLIC_LIFF_ID_TRANSACTIONS="your-transactions-liff-id"
 ```
 
 ### 3. ตั้งค่า Database
